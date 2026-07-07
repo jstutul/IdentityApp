@@ -13,7 +13,7 @@ import { ValidationMessages } from '../../shared/components/errors/validation-me
 export class Register {
   registerForm: FormGroup = new FormGroup({});
   submitted = false;
-  errorMessage:string[] = [];
+  errorMessages:string[] = [];
   private accountService = inject(Account);
   constructor(private formBuilder: FormBuilder) {
   }
@@ -32,22 +32,23 @@ export class Register {
 
   register(){
     this.submitted = true;
-    console.log(this.errorMessage )
-    this.errorMessage = [];
-    // if(this.registerForm.valid){
+    this.errorMessages = [];
+    if(this.registerForm.valid){
       this.accountService.register(this.registerForm.value).subscribe({
         next: (response) => {
           console.log('Registration successful:', response);  
         },
         error: (error) => {
-          console.log('Registration failed:', error.error.errors);
           if (error.error.errors) {
-            this.errorMessage = error.error.errors;
+            this.errorMessages = error.error.errors;
+            console.log('Error messages:', this.errorMessages);
+            this.registerForm.markAllAsTouched();
+          }else{
+            this.errorMessages.push(error.error);
           }
         }
-        
       });
-    // }
+    }
     
   }
 }
