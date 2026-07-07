@@ -1,1 +1,7 @@
-<p>validation-messages works!</p>
+@if (errorMessages.length > 0) {
+  @for (error of errorMessages; track $index) {
+    <div class="alert alert-danger">
+      {{ error }}
+    </div>
+  }
+}

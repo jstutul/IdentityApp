@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-validation-messages',
-  imports: [],
+  standalone: true,
   templateUrl: './validation-messages.html',
-  styleUrl: './validation-messages.css',
+  styleUrl: './validation-messages.css'
 })
-export class ValidationMessages {}
+export class ValidationMessages {
+  @Input() errorMessages: string[] = [];
+}
