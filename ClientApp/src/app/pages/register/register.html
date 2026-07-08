@@ -64,7 +64,6 @@
                         <span class="text-danger">Password must be between 6 and 15 characters long</span>
                     }
                 </div>
-                    {{errorMessages}}
                 @if (errorMessages.length > 0){
                     <div class="from-flotin">
                         <app-validation-messages [errorMessages]="errorMessages"></app-validation-messages>
