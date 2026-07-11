@@ -2,16 +2,27 @@
 <div class="d-flex justify-content-center align-items-center"> 
     <div class="col-12 col-lg-5"> 
         <main class="form-signin">
-            <form>
+            <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off">
                 <div class="text-center mb-4">
                     <h3 class="mb-3 font-weight-normal">Login</h3>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="email" placeholder="Email" class="form-control"> <label for="userName">Email</label>
+                    <input type="text" formControlName="userName" placeholder="Username" class="form-control"> <label for="userName">Username</label>
+                    @if ((submitted || loginForm.get('userName')?.touched) && loginForm.get('userName')?.hasError('required')) {
+                        <span class="text-danger">Username is required</span>
+                    }
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="password" placeholder="Password" class="form-control"> <label for="password">Password</label>
+                    <input type="password" formControlName="password" placeholder="Password" class="form-control"> <label for="password">Password</label>
+                    @if ((submitted || loginForm.get('password')?.touched) && loginForm.get('password')?.hasError('required')) {
+                        <span class="text-danger">Password is required</span>
+                    }
                 </div>  
+                @if (errorMessages.length > 0){
+                    <div class="from-flotin">
+                        <app-validation-messages [errorMessages]="errorMessages"></app-validation-messages>
+                    </div>
+                }
                 <div class="d-grid mt-4 px-1">
                     <button class="btn btn-lg btn-primary" type="submit">Login</button>
                 </div>

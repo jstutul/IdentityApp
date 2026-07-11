@@ -2,6 +2,10 @@ import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Account } from '../../services/account';
 import { ValidationMessages } from '../../shared/components/errors/validation-messages/validation-messages';
+import { Shared } from '../../services/shared';
+import { Router } from '@angular/router';
+import { take } from 'rxjs';
+import { User } from '../../shared/models/user';
 
 @Component({
   selector: 'app-register',
@@ -15,8 +19,17 @@ export class Register {
   submitted = false;
   errorMessages:string[] = [];
   private accountService = inject(Account);
-   private cdr = inject(ChangeDetectorRef);
+  private sharedService = inject(Shared);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   constructor(private formBuilder: FormBuilder) {
+    this.accountService.user$.pipe(take(1)).subscribe({
+      next:(user:User|null)=>{
+        if(user){
+          this.router.navigateByUrl('/');
+        }
+      }
+    })
   }
   ngOnInit() {
     this.initializeForm();
@@ -34,10 +47,17 @@ export class Register {
   register(){
     this.submitted = true;
     this.errorMessages = [];
-    // if(this.registerForm.valid){
+    if(this.registerForm.valid){
       this.accountService.register(this.registerForm.value).subscribe({
-        next: (response) => {
-          console.log('Registration successful:', response);  
+        next: (response:any) => {
+        this.sharedService.showNofication(
+          true,
+          response.value.title,
+          response.value.message,
+          () => {
+            this.router.navigate(['/accounts/login']);
+          }
+        );
         },
         error: (error) => {
           if (error.error.errors) {
@@ -50,7 +70,7 @@ export class Register {
           this.cdr.detectChanges();
         }
       });
-    // }
+    }
     
   }
 }

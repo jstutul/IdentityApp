@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authorizationGuard } from './shared/guards/authorization-guard';
 
 export const routes: Routes = [
     {
@@ -6,11 +7,11 @@ export const routes: Routes = [
         loadComponent: () => import('./home/home').then((m) => m.Home),
         title: 'Home'
     }, 
-    {
-        path: 'play',
-        loadComponent: () => import('./play/play').then((m) => m.Play),
-        title: 'Play'
-    },
+    // {
+    //     path: 'play',
+    //     loadComponent: () => import('./play/play').then((m) => m.Play),
+    //     title: 'Play'
+    // },
     {
         path:'not-found',
         loadComponent: () => import('./shared/components/errors/not-found/not-found').then((m) => m.NotFound),
@@ -29,7 +30,20 @@ export const routes: Routes = [
                 loadComponent: () => import('./pages/register/register').then(m => m.Register)
             }
         ]
-    },    
+    },   
+    {
+        path: '',
+        runGuardsAndResolvers:'always',
+        canActivate:[authorizationGuard],
+        children:[
+            {
+                path:'play',
+                loadComponent: () => import('./play/play').then((m) => m.Play),
+                title: 'Play'
+            }
+        ]
+       
+    }, 
     {
         path: '**',
         redirectTo: 'not-found'
