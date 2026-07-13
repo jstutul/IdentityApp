@@ -69,13 +69,8 @@ export class Account {
       return null;
     }
   }
-  private setUser(user:User){
+  private setUser(user: User) {
     localStorage.setItem(environment.userKey, JSON.stringify(user));
     this.userSource.next(user);
-    this.user$.subscribe({
-      next: response=>{
-        console.log(response);
-      }
-    })
   }
 }

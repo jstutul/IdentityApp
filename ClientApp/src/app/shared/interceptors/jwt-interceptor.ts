@@ -14,8 +14,5 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
       }
     });
   }
-
-  console.log(req.headers.get('Authorization'));
-
   return next(req);
 };

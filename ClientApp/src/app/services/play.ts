@@ -7,9 +7,9 @@ import { environment } from '../../environments/environment.development';
 })
 export class PlayService {
   private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl;
+  baseUrl = environment.apiUrl;
 
   getPlayers(){
-    return this.http.get(environment.apiUrl+'play/get-players');  
+    return this.http.get(this.baseUrl+'play/get-players');  
   }
 }

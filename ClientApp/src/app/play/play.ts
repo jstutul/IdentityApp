@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { PlayService } from '../services/play';
 
 @Component({
@@ -7,19 +7,21 @@ import { PlayService } from '../services/play';
   templateUrl: './play.html',
   styleUrl: './play.css',
 })
-export class Play {
+export class Play implements OnInit {
   private playService = inject(PlayService);
+  private cdr = inject(ChangeDetectorRef);
   message : string|undefined;
 
-  ngOnInit(){
+  ngOnInit(): void {
     this.playService.getPlayers().subscribe({
-      next:(response:any)=>{
-        this.message=response.value.message;
-        console.log(response);
+      next: (response: any) => {
+        console.log(response.value.message);
+        this.message = response.value.message;
+        this.cdr.detectChanges();
       },
-      error:(e)=>{
-        console.log(e);
+      error: (err) => {
+        console.error(err);
       }
-    })
+    });
   }
 }

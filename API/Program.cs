@@ -57,7 +57,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddScoped<JWTService>();
-
+builder.Services.AddScoped<EmailService>();
 
 
 builder.Services.AddCors();
