@@ -1,35 +1,40 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Account } from '../../services/account';
-import { map, take } from 'rxjs';
 import { Shared } from '../../services/shared';
+import { catchError, map,take, of } from 'rxjs';
 
 export const authorizationGuard: CanActivateFn = (route, state) => {
 
   const accountService = inject(Account);
   const sharedService = inject(Shared);
   const router = inject(Router);
+  const jwt = accountService.getJWT();
 
-  return accountService.user$.pipe(
-    take(1),
-    map(user => {
+  if (!jwt) {
+    sharedService.showNofication(
+      false,
+      'Restricted Area',
+      'Please login first.'
+    );
 
-      if (user) {
-        return true;
-      }
+    return of(
+      router.createUrlTree(['/accounts/login'], {
+        queryParams: { returnUrl: state.url }
+      })
+    );
+  }
 
-      sharedService.showNofication(
-        false,
-        'Restricted Area',
-        'Please login first.'
+   return accountService.refreshUser(jwt).pipe(
+    map(() => true),
+    catchError(() => {
+      accountService.logout();
+
+      return of(
+        router.createUrlTree(['/accounts/login'], {
+          queryParams: { returnUrl: state.url }
+        })
       );
-
-      return router.createUrlTree(['/accounts/login'], {
-        queryParams: {
-          returnUrl: state.url
-        }
-      });
-
     })
   );
 };

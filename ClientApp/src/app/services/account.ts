@@ -1,21 +1,20 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../environments/environment.development';
-import { Register } from '../shared/models/register';
-import { Login } from '../shared/models/login';
-import { User } from '../shared/models/user';
+import { Register } from '../shared/models/account/register';
+import { Login } from '../shared/models/account/login';
+import { User } from '../shared/models/account/user';
 import { BehaviorSubject, map, of, ReplaySubject } from 'rxjs';
 import { Router } from '@angular/router';
+import { confirmEmail } from '../shared/models/account/confirmEmail';
+import { ResetPassword } from '../shared/models/account/ResetPassword';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Account {
-  private userSource = new ReplaySubject<User|null>(1);
-  user$ =this.userSource.asObservable();
-
-  // private userSource = new BehaviorSubject<User | null>(null);
-  // user$ = this.userSource.asObservable();
+  private userSource = new BehaviorSubject<User | null>(null);
+  user$ = this.userSource.asObservable();
 
   private router = inject(Router);
   private http = inject(HttpClient);
@@ -27,6 +26,7 @@ export class Account {
   register(model:Register){
     return this.http.post(this.baseUrl + 'account/register', model);
   }
+
   login(model:Login){
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
       map((user:User)=>{
@@ -39,8 +39,24 @@ export class Account {
     );
   }
 
+  confirmEmail(model:confirmEmail){
+    return this.http.put(this.baseUrl+'account/confirm-email',model);
+  }
+
+  resendEmailConfirmationLink(email:string){
+    return this.http.post(this.baseUrl+'account/resend-email-confirmation-link/'+email,{});
+  }
+
+  forgotUsernameOrPassword(email:string){
+    return this.http.post(this.baseUrl+'account/forget-username-or-password/'+email,{});
+  }
+
+  resetPassword(model:ResetPassword){
+    return this.http.post(this.baseUrl+'account/reset-password/',model);
+  }
+
   logout(){
-    sessionStorage.removeItem(environment.userKey);
+    localStorage.removeItem(environment.userKey);
     this.userSource.next(null);
     this.router.navigateByUrl('/');
   }

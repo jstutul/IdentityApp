@@ -49,7 +49,7 @@ namespace API.Controllers
             }
             if(user.EmailConfirmed== false)
             {
-                return Unauthorized("Email is not confirmed.");
+                return Unauthorized("Please confirm your email.");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
@@ -226,7 +226,7 @@ namespace API.Controllers
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var url = $"{configuration["JWT:ClientUrl"]}/{configuration["Email:ResetPasswordPath"]}?token={user.Email}";
+            var url = $"{configuration["JWT:ClientUrl"]}/{configuration["Email:ResetPasswordPath"]}?token={token}&email={user.Email}";
 
 
             var body = $"<p>Hello : {user.FirstName} {user.LastName}</p>" +
@@ -243,7 +243,7 @@ namespace API.Controllers
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var url = $"{configuration["JWT:ClientUrl"]}/{configuration["Email:ConfirmEmailPath"]}?token={user.Email}";
+            var url = $"{configuration["JWT:ClientUrl"]}/{configuration["Email:ConfirmEmailPath"]}?token={token}&email={user.Email}";
             var body = $"<p>Hello : {user.FirstName} {user.LastName}</p>" +
                 $"<p>Please confirm your email address by clicking on the following link.</p>" +
                 $"<p><a href=\"{url}\">Click here</a></p>" +

@@ -5,7 +5,7 @@ import { ValidationMessages } from '../../shared/components/errors/validation-me
 import { Shared } from '../../services/shared';
 import { Router } from '@angular/router';
 import { take } from 'rxjs';
-import { User } from '../../shared/models/user';
+import { User } from '../../shared/models/account/user';
 
 @Component({
   selector: 'app-register',

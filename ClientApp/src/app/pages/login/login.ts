@@ -2,14 +2,14 @@ import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Account } from '../../services/account';
 import { Shared } from '../../services/shared';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ValidationMessages } from '../../shared/components/errors/validation-messages/validation-messages';
 import { take } from 'rxjs';
-import { User } from '../../shared/models/user';
+import { User } from '../../shared/models/account/user';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule,ValidationMessages],
+  imports: [ReactiveFormsModule, ValidationMessages, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -74,6 +74,10 @@ export class Login {
         }
       });
     }
+  }
+
+  resendEmailconfirmationLink(){
+    this.router.navigateByUrl('/accounts/send-email/resend-email-confirmation-link')
   }
 
 }

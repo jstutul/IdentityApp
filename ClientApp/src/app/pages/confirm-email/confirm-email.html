@@ -1,0 +1,15 @@
+@if(success){
+<div class="container text-center">
+    <a class="btn btn-primary" routerLink="/accounts/login">
+        Login
+    </a>
+</div>
+}
+@if(!success){
+<div class="container text-center">
+    <a (click)="resendEmailConfirmation()" class="btn btn-link">
+        Click here to resend email confirmation
+    </a>
+</div>
+}
+

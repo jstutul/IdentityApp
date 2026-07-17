@@ -28,6 +28,18 @@ export const routes: Routes = [
             {
                 path: 'register',
                 loadComponent: () => import('./pages/register/register').then(m => m.Register)
+            },
+            {
+                path: 'confirm-email',
+                loadComponent: () => import('./pages/confirm-email/confirm-email').then(m => m.ConfirmEmail)
+            }, 
+            {
+                path: 'send-email/:mode',
+                loadComponent: () => import('./pages/send-email/send-email').then(m => m.SendEmail)
+            },
+            {
+                path: 'reset-password',
+                loadComponent: () => import('./pages/reset-pasword/reset-pasword').then(m => m.ResetPasword)
             }
         ]
     },   
