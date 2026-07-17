@@ -6,6 +6,7 @@ import { Shared } from '../../services/shared';
 import { Router } from '@angular/router';
 import { take } from 'rxjs';
 import { User } from '../../shared/models/account/user';
+declare const FB:any;
 
 @Component({
   selector: 'app-register',
@@ -33,6 +34,11 @@ export class Register {
   }
   ngOnInit() {
     this.initializeForm();
+    FB.init({
+      appId: '1682541726343840', 
+      cookieDomain: 'all',
+      version: 'v18.0'
+    });
   }
 
   initializeForm() {
@@ -73,4 +79,30 @@ export class Register {
     }
     
   }
+
+  // ✅ CORRECT: Use a regular function
+registerWithFacebook(){
+  FB.login((fbResult: any) => {
+    if (fbResult.authResponse) {
+      const accessToken = fbResult.authResponse.accessToken;
+      const userId = fbResult.authResponse.userID;
+      this.router.navigateByUrl(`/accounts/third-party/facebook?access_token=${accessToken}&userId=${userId}`);
+      this.processFacebookLogin(fbResult.authResponse);
+    } else {
+      this.sharedService.showNofication(false,"Failed","Unable to register with your facebook");
+    }
+  }, { scope: 'public_profile,email' }); // Added scope to get email
+}
+
+  // Create a separate async method to handle the data
+  async processFacebookLogin(authResponse: any) {
+    const accessToken = authResponse.accessToken;
+    
+    // Now you can use await here!
+    FB.api('/me', { fields: 'id,name,email' }, (response: any) => {
+      console.log('User Data: ', response);
+      // Call your backend service here
+    });
+  }
+
 }

@@ -40,6 +40,10 @@ export const routes: Routes = [
             {
                 path: 'reset-password',
                 loadComponent: () => import('./pages/reset-pasword/reset-pasword').then(m => m.ResetPasword)
+            },
+            {
+                path: 'register/third-party/:provider',
+                loadComponent: () => import('./pages/register-with-third-party/register-with-third-party').then(m => m.RegisterWithThirdParty)
             }
         ]
     },   
