@@ -66,15 +66,8 @@ export class RegisterWithThirdParty {
       const model = new RegisterWithExternal(firstName,lastName,this.userId,this.acccess_token,this.provider);
       console.log(model);
       this.accountService.registerWithThirdParty(model).subscribe({
-        next: (response:any) => {
-        this.sharedService.showNofication(
-          true,
-          response.value.title,
-          response.value.message,
-          () => {
-            this.router.navigate(['/accounts/login']);
-          }
-        );
+        next: _ => {
+          this.router.navigateByUrl('/');
         },
         error: (error) => {
           if (error.error.errors) {

@@ -6,7 +6,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ValidationMessages } from '../../shared/components/errors/validation-messages/validation-messages';
 import { take } from 'rxjs';
 import { User } from '../../shared/models/account/user';
-
+import { LoginWithExternal } from '../../shared/models/account/LoginWithExternal';
+declare const FB:any;
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, ValidationMessages, RouterLink],
@@ -41,6 +42,11 @@ export class Login {
   }
   ngOnInit() {
     this.initializeForm();
+     FB.init({
+      appId: '1682541726343840', 
+      cookieDomain: 'all',
+      version: 'v18.0'
+    });
   }
 
   initializeForm() {
@@ -55,7 +61,7 @@ export class Login {
     this.errorMessages = [];
     if(this.loginForm.valid){
       this.accountService.login(this.loginForm.value).subscribe({
-        next: (response:any) => {
+        next: _ => {
           if(this.returnUrl){
             this.router.navigateByUrl(this.returnUrl);
           }else{
@@ -65,7 +71,6 @@ export class Login {
         error: (error) => {
           if (error.error.errors) {
             this.errorMessages = error.error.errors;
-            console.log('Error messages:', this.errorMessages);
             this.loginForm.markAllAsTouched();
           }else{
             this.errorMessages.push(error.error);
@@ -74,6 +79,35 @@ export class Login {
         }
       });
     }
+  }
+
+  loginWithFacebook(){
+  FB.login((fbResult: any) => {
+      if (fbResult.authResponse) {
+        const accessToken = fbResult.authResponse.accessToken;
+        const userId = fbResult.authResponse.userID;
+        this.accountService.loginWithThirdParty(new LoginWithExternal(userId,accessToken,"facebook")).subscribe({
+          next:_=>{
+            if(this.returnUrl){
+            this.router.navigateByUrl(this.returnUrl);
+            }else{
+              this.router.navigateByUrl('/');
+            }
+          },
+          error: (error) => {
+            if (error.error.errors) {
+              this.errorMessages = error.error.errors;
+              this.loginForm.markAllAsTouched();
+            }else{
+              this.errorMessages.push(error.error);
+            }
+            this.cdr.detectChanges();
+          }
+        })
+      } else {
+        this.sharedService.showNofication(false,"Failed","Unable to login with your facebook");
+      }
+    }, { scope: 'public_profile,email' }); // Added scope to get email
   }
 
   resendEmailconfirmationLink(){

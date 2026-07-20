@@ -1,20 +1,22 @@
 ﻿using API.DTOs.Account;
 using API.Models;
 using API.Services;
+using Mailjet.Client.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Win32;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using Microsoft.Extensions.Configuration;
-using System;
 using Microsoft.AspNetCore.WebUtilities;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Win32;
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using User = API.Models.User;
 
 namespace API.Controllers
 {
@@ -63,6 +65,41 @@ namespace API.Controllers
             if (!result.Succeeded)
             {
                 return Unauthorized("Invalid email or password.");
+            }
+            return CreateApplicationUserDto(user);
+        }
+
+        [HttpPost("login-with-third-party")]
+        public async Task<ActionResult<UserDto>> LoginWithExternal(LoginWithExternal model)
+        {
+            if (model.Provider.Equals(SD.Facebook))
+            {
+                try
+                {
+                    if (!FacebookValidatedAsync(model.AccessToken, model.UserId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unabled to login with facebook");
+                    }
+                }
+                catch (Exception)
+                {
+                    return Unauthorized("Unabled to login with facebook");
+                }
+
+            }
+            else if (model.Provider.Equals(SD.Google))
+            {
+
+            }
+            else
+            {
+                return BadRequest("Invalid Provider");
+            }
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(x=>x.UserName==model.UserId && x.Provider==model.Provider);
+            if (user == null)
+            {
+                return Unauthorized("Unable to find your account");
             }
             return CreateApplicationUserDto(user);
         }
