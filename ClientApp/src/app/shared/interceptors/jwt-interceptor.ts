@@ -6,7 +6,6 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const accountService = inject(Account);
 
   const jwt = accountService.getJWT();
-
   if (jwt) {
     req = req.clone({
       setHeaders: {

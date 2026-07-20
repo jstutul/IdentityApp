@@ -10,7 +10,7 @@ export const authorizationGuard: CanActivateFn = (route, state) => {
   const sharedService = inject(Shared);
   const router = inject(Router);
   const jwt = accountService.getJWT();
-
+  alert(11);
   if (!jwt) {
     sharedService.showNofication(
       false,

@@ -11,7 +11,25 @@ import { Account } from './services/account';
   styleUrl: './app.css'
 })
 export class App {
+
+  constructor(private accountService:Account){}
   ngOnInit(){
-    
+    this.refreshUser();
   }
+  private refreshUser(){
+    const jwt = this.accountService.getJWT();
+    if(jwt){
+      this.accountService.refreshUser(jwt).subscribe({
+        next:_=>{
+
+        },error:_=>{
+          this.accountService.logout();
+        }
+      })
+    }else{
+      this.accountService.refreshUser(null).subscribe();
+    }
+  }
+
+
 }

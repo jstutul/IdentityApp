@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Account } from '../../services/account';
 import { ValidationMessages } from '../../shared/components/errors/validation-messages/validation-messages';
@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { take } from 'rxjs';
 import { User } from '../../shared/models/account/user';
 declare const FB:any;
+declare const google: any;
 
 @Component({
   selector: 'app-register',
@@ -16,6 +17,7 @@ declare const FB:any;
   styleUrl: './register.css',
 })
 export class Register {
+  @ViewChild('googleButton', { static: true }) googleButton: ElementRef = new ElementRef({});
   registerForm: FormGroup = new FormGroup({});
   submitted = false;
   errorMessages:string[] = [];
@@ -34,6 +36,7 @@ export class Register {
   }
   ngOnInit() {
     this.initializeForm();
+    this.initializeGoogleButton();
     FB.init({
       appId: '1682541726343840', 
       cookieDomain: 'all',
@@ -94,6 +97,27 @@ registerWithFacebook(){
   }, { scope: 'public_profile,email' }); // Added scope to get email
 }
 
+private initializeGoogleButton(){
+  (window as any).onGoogleLibraryLoad=()=>{
+    // @ts-ignore
+    google.accounts.id.initialize({
+      client_id:'233596855582-97av92bdkih4r1fcu4dcddrcdmlenqib.apps.googleusercontent.com',
+      callback:this.googleCallBack.bind(this),
+      auto_select:false,
+      auto_on_tap_outside:true
+    });
+    // @ts-ignore
+    google.accounts.id.renderButton(
+      this.googleButton.nativeElement,
+      {size:'medium',shape:'reactangular',text:'signup-with',logo_alignment:'center'}
+    );
+  }  
+}
+private async googleCallBack(
+  response: CredentialResponse
+) {
+  console.log(response.credential);
+}
   // Create a separate async method to handle the data
   async processFacebookLogin(authResponse: any) {
     const accessToken = authResponse.accessToken;

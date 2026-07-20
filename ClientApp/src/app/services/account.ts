@@ -53,6 +53,7 @@ export class Account {
   registerWithThirdParty(model:RegisterWithExternal){
     return this.http.post<User>(this.baseUrl+'account/register-with-third-party',model).pipe(
       map((user:User)=>{
+        console.log(user);
         if(user){
           this.setUser(user);
         }
