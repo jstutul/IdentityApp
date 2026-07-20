@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using System;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using System.Net.Http;
+using System.Net.Http.Json;
 
 namespace API.Controllers
 {
@@ -25,6 +27,7 @@ namespace API.Controllers
         private readonly IConfiguration configuration;
         private readonly EmailService emailService;
         private readonly UserManager<User> _userManager;
+        private readonly HttpClient _facebookHttpClient;
         public AccountController(JWTService jwtService, 
             UserManager<User> userManager, 
             SignInManager<User> signInManager,
@@ -36,6 +39,10 @@ namespace API.Controllers
             _signInManager = signInManager;
             this.configuration = configuration;
             this.emailService = emailService;
+            _facebookHttpClient = new HttpClient()
+            {
+                BaseAddress = new Uri("https://graph.facebook.com/v24.0/")
+            };
         }
 
         #region Private Helper Method
@@ -94,6 +101,49 @@ namespace API.Controllers
             {
                 return BadRequest("Failed in send email confirmation");
             }
+        }
+
+
+        [HttpPost("register-with-third-party")]
+        public async Task<ActionResult<UserDto>> RegisterWithThirdParty(RegisterWithExternal model)
+        {
+            if (model.Provider.Equals(SD.Facebook))
+            {
+                try
+                {
+                    if (!FacebookValidatedAsync(model.AccessToken, model.UserId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unabled to register with facebook");
+                    }
+                }
+                catch (Exception)
+                {
+                    return Unauthorized("Unabled to register with facebook");
+                }
+               
+            }else if (model.Provider.Equals(SD.Google))
+            {
+
+            }
+            var user = await _userManager.FindByNameAsync(model.UserId);
+            if(user != null)
+            {
+                return BadRequest(string.Format("You have already an account.Please login with your {0}", model.Provider));
+            }
+            var userToAdd = new User
+            {
+                UserName = model.UserId,
+                FirstName = model.FirstName.ToLower(),
+                LastName = model.LastName.ToLower(),
+                Provider =model.Provider
+            };
+
+            var result = await _userManager.CreateAsync(userToAdd);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+            return CreateApplicationUserDto(userToAdd);
         }
 
         [HttpPut("confirm-email")]
@@ -251,6 +301,21 @@ namespace API.Controllers
                 $"<br>{configuration["Email:ApplicationName"]}";
             var emailSend = new EmailSendDto(user.Email, body,"Confirm your email");
             return await emailService.SendEmailAsync(emailSend);
+        }
+
+        private async Task<bool> FacebookValidatedAsync(string accessToken,string userId)
+        {
+            var appId = configuration["Facebook:AppId"];
+            var appSecret = configuration["Facebook:AppSecrect"];
+
+            var appAccessToken = $"{appId}|{appSecret}";
+
+            var fbResult = await _facebookHttpClient.GetFromJsonAsync<facebookResultDto>($"debug_token?input_token={accessToken}&access_token={appAccessToken}");
+            if(fbResult == null || fbResult.Data.Is_Valid == false || !fbResult.Data.user_Id.Equals(userId))
+            {
+                return false;
+            }
+            return true;
         }
 
         #endregion

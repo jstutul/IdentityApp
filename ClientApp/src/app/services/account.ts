@@ -8,6 +8,7 @@ import { BehaviorSubject, map, of, ReplaySubject } from 'rxjs';
 import { Router } from '@angular/router';
 import { confirmEmail } from '../shared/models/account/confirmEmail';
 import { ResetPassword } from '../shared/models/account/ResetPassword';
+import { RegisterWithExternal } from '../shared/models/account/registerWithExternal';
 
 @Injectable({
   providedIn: 'root',
@@ -37,6 +38,10 @@ export class Account {
         // return null;
       })
     );
+  }
+
+  registerWithThirdParty(model:RegisterWithExternal){
+    return this.http.post(this.baseUrl+'account/register-with-third-party',model);
   }
 
   confirmEmail(model:confirmEmail){

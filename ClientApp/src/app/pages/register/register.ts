@@ -86,8 +86,8 @@ registerWithFacebook(){
     if (fbResult.authResponse) {
       const accessToken = fbResult.authResponse.accessToken;
       const userId = fbResult.authResponse.userID;
-      this.router.navigateByUrl(`/accounts/third-party/facebook?access_token=${accessToken}&userId=${userId}`);
-      this.processFacebookLogin(fbResult.authResponse);
+      this.router.navigateByUrl(`/accounts/register/third-party/facebook?access_token=${accessToken}&userId=${userId}`);
+      //this.processFacebookLogin(fbResult.authResponse);
     } else {
       this.sharedService.showNofication(false,"Failed","Unable to register with your facebook");
     }

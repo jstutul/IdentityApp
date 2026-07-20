@@ -1,1 +1,54 @@
-<p>register-with-third-party works!</p>
+@if(provider && acccess_token && userId)
+{
+<div class="d-flex justify-content-center align-items-center"> 
+    <div class="col-12 col-lg-5"> 
+        <main class="form-signin">
+            <form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+                <div class="text-center mb-4">
+                    <h3 class="mb-3 font-weight-normal">
+                       Creating an account using your
+                        <span class="text-danger">{{provider}}</span>
+                    </h3>
+                </div>
+
+                <!-- First Name -->
+                <div class="form-floating mb-3">
+                    <input formControlName="firstName" type="text" placeholder="First Name" class="form-control"
+                    [class.is-invalid]="(submitted || registerForm.get('firstName')?.touched) && registerForm.get('firstName')?.errors"> 
+                    <label for="firstName">First Name</label>
+                    
+                    @if ((submitted || registerForm.get('firstName')?.touched) && registerForm.get('firstName')?.hasError('required')) {
+                        <span class="text-danger">First Name is required</span>
+                    }
+                    @if ((submitted || registerForm.get('firstName')?.touched) && (registerForm.get('firstName')?.hasError('minlength') || registerForm.get('firstName')?.hasError('maxlength'))) {
+                        <span class="text-danger">First Name must be between 3 and 15 characters long</span>
+                    }
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-floating mb-3">
+                    <input formControlName="lastName" type="text" placeholder="Last Name" class="form-control"
+                    [class.is-invalid]="(submitted || registerForm.get('lastName')?.touched) && registerForm.get('lastName')?.errors"> 
+                    <label for="lastName">Last Name</label>
+                    
+                    @if ((submitted || registerForm.get('lastName')?.touched) && registerForm.get('lastName')?.hasError('required')) {
+                        <span class="text-danger">Last Name is required</span>
+                    }
+                    @if ((submitted || registerForm.get('lastName')?.touched) && (registerForm.get('lastName')?.hasError('minlength') || registerForm.get('lastName')?.hasError('maxlength'))) {
+                        <span class="text-danger">Last Name must be between 3 and 15 characters long</span>
+                    }
+                </div>
+                @if (errorMessages.length > 0){
+                    <div class="from-flotin">
+                        <app-validation-messages [errorMessages]="errorMessages"></app-validation-messages>
+                    </div>
+                }
+
+                <div class="d-grid mt-4 px-1">
+                    <button class="btn btn-lg btn-primary" type="submit">Create Account</button>
+                </div>
+            </form>
+        </main>
+    </div>  
+</div>
+}
