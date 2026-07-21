@@ -1,6 +1,7 @@
 ﻿using API.DTOs.Account;
 using API.Models;
 using API.Services;
+using Google.Apis.Auth;
 using Mailjet.Client.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -89,7 +90,17 @@ namespace API.Controllers
             }
             else if (model.Provider.Equals(SD.Google))
             {
-
+                try
+                {
+                    if (!GoogleValidatedAsync(model.AccessToken, model.UserId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unabled to login with google");
+                    }
+                }
+                catch (Exception)
+                {
+                    return Unauthorized("Unabled to login with google");
+                }
             }
             else
             {
@@ -160,7 +171,17 @@ namespace API.Controllers
                
             }else if (model.Provider.Equals(SD.Google))
             {
-
+                try
+                {
+                    if (!GoogleValidatedAsync(model.AccessToken, model.UserId).GetAwaiter().GetResult())
+                    {
+                        return Unauthorized("Unabled to register with google");
+                    }
+                }
+                catch (Exception)
+                {
+                    return Unauthorized("Unabled to register with google");
+                }
             }
             var user = await _userManager.FindByNameAsync(model.UserId);
             if(user != null)
@@ -349,6 +370,34 @@ namespace API.Controllers
 
             var fbResult = await _facebookHttpClient.GetFromJsonAsync<facebookResultDto>($"debug_token?input_token={accessToken}&access_token={appAccessToken}");
             if(fbResult == null || fbResult.Data.Is_Valid == false || !fbResult.Data.user_Id.Equals(userId))
+            {
+                return false;
+            }
+            return true;
+        }
+        private async Task<bool> GoogleValidatedAsync(string accessToken, string userId)
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(accessToken);
+            if (!payload.Audience.Equals(configuration["Google:ClientId"]))
+            {
+                return false;
+            }
+            if (!payload.Issuer.Equals("accounts.google.com") && !payload.Issuer.Equals("https://accounts.google.com"))
+            {
+                return false;
+            }
+            if(payload.ExpirationTimeSeconds == null)
+            {
+                return false;
+            }
+
+            DateTime now = DateTime.Now.ToUniversalTime();
+            DateTime expiaration = DateTimeOffset.FromUnixTimeSeconds((long)payload.ExpirationTimeSeconds).DateTime;
+            if (now > expiaration) {
+                return false;
+            }
+
+            if (!payload.Subject.Equals(userId))
             {
                 return false;
             }

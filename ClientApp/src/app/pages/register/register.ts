@@ -6,6 +6,7 @@ import { Shared } from '../../services/shared';
 import { Router } from '@angular/router';
 import { take } from 'rxjs';
 import { User } from '../../shared/models/account/user';
+import { jwtDecode } from 'jwt-decode';
 declare const FB:any;
 declare const google: any;
 
@@ -17,7 +18,8 @@ declare const google: any;
   styleUrl: './register.css',
 })
 export class Register {
-  @ViewChild('googleButton', { static: true }) googleButton: ElementRef = new ElementRef({});
+  @ViewChild('googleButton')
+  googleButton!: ElementRef<HTMLDivElement>;
   registerForm: FormGroup = new FormGroup({});
   submitted = false;
   errorMessages:string[] = [];
@@ -36,12 +38,15 @@ export class Register {
   }
   ngOnInit() {
     this.initializeForm();
-    this.initializeGoogleButton();
+    //this.initializeGoogleButton();
     FB.init({
       appId: '1682541726343840', 
       cookieDomain: 'all',
       version: 'v18.0'
     });
+  }
+  ngAfterViewInit() {
+    this.initializeGoogleButton();
   }
 
   initializeForm() {
@@ -83,42 +88,44 @@ export class Register {
     
   }
 
-  // ✅ CORRECT: Use a regular function
-registerWithFacebook(){
-  FB.login((fbResult: any) => {
-    if (fbResult.authResponse) {
-      const accessToken = fbResult.authResponse.accessToken;
-      const userId = fbResult.authResponse.userID;
-      this.router.navigateByUrl(`/accounts/register/third-party/facebook?access_token=${accessToken}&userId=${userId}`);
-      //this.processFacebookLogin(fbResult.authResponse);
-    } else {
-      this.sharedService.showNofication(false,"Failed","Unable to register with your facebook");
-    }
-  }, { scope: 'public_profile,email' }); // Added scope to get email
-}
+  registerWithFacebook(){
+    FB.login((fbResult: any) => {
+      if (fbResult.authResponse) {
+        const accessToken = fbResult.authResponse.accessToken;
+        const userId = fbResult.authResponse.userID;
+        this.router.navigateByUrl(`/accounts/register/third-party/facebook?access_token=${accessToken}&userId=${userId}`);
+        //this.processFacebookLogin(fbResult.authResponse);
+      } else {
+        this.sharedService.showNofication(false,"Failed","Unable to register with your facebook");
+      }
+    }, { scope: 'public_profile,email' }); // Added scope to get email
+  }
 
-private initializeGoogleButton(){
-  (window as any).onGoogleLibraryLoad=()=>{
-    // @ts-ignore
+  private initializeGoogleButton() {
     google.accounts.id.initialize({
       client_id:'233596855582-97av92bdkih4r1fcu4dcddrcdmlenqib.apps.googleusercontent.com',
-      callback:this.googleCallBack.bind(this),
-      auto_select:false,
-      auto_on_tap_outside:true
+      callback: this.googleCallback.bind(this),
+      auto_select: false
     });
-    // @ts-ignore
+
     google.accounts.id.renderButton(
       this.googleButton.nativeElement,
-      {size:'medium',shape:'reactangular',text:'signup-with',logo_alignment:'center'}
+      {
+        // theme: 'outline',
+        size: 'medium',
+        text: 'signup_with',
+        shape: 'rectangular',
+        logo_alignment:'center'
+      }
     );
-  }  
-}
-private async googleCallBack(
-  response: CredentialResponse
-) {
-  console.log(response.credential);
-}
-  // Create a separate async method to handle the data
+    google.accounts.id.prompt();
+  }
+
+  private async googleCallback(response: any) {
+    const decodedToken = jwtDecode(response.credential);
+    this.router.navigateByUrl(`/accounts/register/third-party/google?access_token=${response.credential}&userId=${decodedToken.sub}`);
+  }
+
   async processFacebookLogin(authResponse: any) {
     const accessToken = authResponse.accessToken;
     
