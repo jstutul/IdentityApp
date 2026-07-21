@@ -1,3 +1,4 @@
+using API;
 using API.Data;
 using API.Models;
 using API.Services;
@@ -9,8 +10,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Linq;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<EmailService>();
-
+builder.Services.AddScoped<ContextSeedService>();
 
 builder.Services.AddCors();
 
@@ -78,6 +82,26 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
+
+builder.Services.AddAuthorization(opt =>
+{
+    opt.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    opt.AddPolicy("ManagerPolicy", policy => policy.RequireRole("Manager"));
+    opt.AddPolicy("PlayerPolicy", policy => policy.RequireRole("Player"));
+
+
+
+    opt.AddPolicy("AdminOrManagerPolicy", policy => policy.RequireRole("Admin","Manager"));
+    opt.AddPolicy("AdminAndManagerPolicy", policy => policy.RequireRole("Admin").RequireRole("Manager"));
+    opt.AddPolicy("AllPolicy", policy => policy.RequireRole("Admin","Manager","Player"));
+
+    opt.AddPolicy("AdminEmailPolicy", policy => policy.RequireClaim(ClaimTypes.Email, "admin@gmail.com"));
+    opt.AddPolicy("MillerSurnamePolicy", policy => policy.RequireClaim(ClaimTypes.Surname, "miller"));
+    
+
+    opt.AddPolicy("ManagerEmailAndplayerSurnamePolicy", policy => policy.RequireClaim(ClaimTypes.Email, "manager@gmail.com").RequireClaim(ClaimTypes.Surname,"player"));
+    opt.AddPolicy("VIPPolicy", policy => policy.RequireAssertion(context=>SD.VIPPolicy(context)));
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -96,4 +120,19 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+
+#region
+using var scope = app.Services.CreateScope();
+try
+{
+    var contextSeedService = scope.ServiceProvider.GetService<ContextSeedService>();
+    await contextSeedService.initializeContextAsync();
+
+}
+catch(Exception ex)
+{
+    var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+    logger.LogError(ex.Message,"Failed to initialize and data seed");
+}
+#endregion
 app.Run();

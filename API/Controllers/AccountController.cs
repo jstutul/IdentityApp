@@ -67,7 +67,7 @@ namespace API.Controllers
             {
                 return Unauthorized("Invalid email or password.");
             }
-            return CreateApplicationUserDto(user);
+            return await CreateApplicationUserDto(user);
         }
 
         [HttpPost("login-with-third-party")]
@@ -112,7 +112,7 @@ namespace API.Controllers
             {
                 return Unauthorized("Unable to find your account");
             }
-            return CreateApplicationUserDto(user);
+            return await CreateApplicationUserDto(user);
         }
 
         [HttpPost("register")]
@@ -201,7 +201,7 @@ namespace API.Controllers
             {
                 return BadRequest(result.Errors);
             }
-            return CreateApplicationUserDto(userToAdd);
+            return await CreateApplicationUserDto(userToAdd);
         }
 
         [HttpPut("confirm-email")]
@@ -312,16 +312,16 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> RefreshUserToken()
         {
             var user = await _userManager.FindByNameAsync(User.FindFirst(ClaimTypes.Email)?.Value);
-            return CreateApplicationUserDto(user);
+            return await CreateApplicationUserDto(user);
         }
 
-        private UserDto CreateApplicationUserDto(User user)
+        private async Task<UserDto> CreateApplicationUserDto(User user)
         {
             return new UserDto
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                JWT = _jwtService.CreateJWT(user)
+                JWT = await  _jwtService.CreateJWT(user)
             };
         }
 
