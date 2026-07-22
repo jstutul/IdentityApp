@@ -63,10 +63,29 @@ namespace API.Controllers
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+
+            if (result.IsLockedOut)
+            {
+                return Unauthorized(string.Format("Your account has been locked.You have to wait until {0} (UTC time) to be able to login", user.LockoutEnd));
+            }
+
             if (!result.Succeeded)
             {
+                if (!user.UserName.Equals(SD.AdminUserName))
+                {
+                    await _userManager.AccessFailedAsync(user);
+                }
+
+                if (user.AccessFailedCount >= SD.MaxmimumLoginAttemps)
+                {
+                    // lock user for 1 day
+                    await _userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow.AddDays(1));
+                    return Unauthorized(string.Format("Your account has been locked.You have to wait until {0} (UTC time) to be able to login", user.LockoutEnd));
+                }
                 return Unauthorized("Invalid email or password.");
             }
+            await _userManager.ResetAccessFailedCountAsync(user);
+            await _userManager.SetLockoutEndDateAsync(user, null);
             return await CreateApplicationUserDto(user);
         }
 
@@ -137,6 +156,8 @@ namespace API.Controllers
             {
                 return BadRequest(result.Errors);
             }
+
+            await _userManager.AddToRoleAsync(userToAdd, SD.PlayerRole);
             try
             {
                 if(await SendConfirmEmailAsync(userToAdd))
@@ -201,6 +222,7 @@ namespace API.Controllers
             {
                 return BadRequest(result.Errors);
             }
+            await _userManager.AddToRoleAsync(userToAdd, SD.PlayerRole);
             return await CreateApplicationUserDto(userToAdd);
         }
 
